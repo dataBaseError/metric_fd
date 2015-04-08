@@ -6,14 +6,23 @@ import java.util.HashMap;
 public abstract class Repair<E> {
 	
 	// TODO create a class that encapsulates the MFD
+	/*
 	private E[] x_attributes;
 	private E y_attribute;
 	private Integer delta;
-	
+	*/
+	/*
 	public Repair(E[] x_attributes, E y_attribute, Integer delta) {
 		this.x_attributes = x_attributes;
 		this.y_attribute = y_attribute;
 		this.delta = delta;
+	}
+	*/
+	
+	private MetricFD<E> mfd;
+	
+	public Repair(MetricFD<E> mfd) {
+		this.mfd = mfd;
 	}
 
 	/**
@@ -31,7 +40,7 @@ public abstract class Repair<E> {
 		
 		for(int i = 0; i < rows.size(); i++) {
 			if (i > 0) {
-				if(!compareArray(rows.get(i-1), rows.get(i), this.x_attributes)) {
+				if(!compareArray(rows.get(i-1), rows.get(i), this.mfd.getX_attributes())) {
 					// The X values do not match
 					
 					// Add the best pattern to the core pattern
@@ -46,7 +55,7 @@ public abstract class Repair<E> {
 					best_pattern.clear();
 					min_row = rows.get(i);					
 				}
-				else if(!satisftyMFD(min_row.get(this.y_attribute), rows.get(i).get(this.y_attribute))) {
+				else if(!satisftyMFD(min_row.get(this.mfd.getY_attribute()), rows.get(i).get(this.mfd.getY_attribute()))) {
 					// The Y value does not satisfy the MFD
 					if(best_pattern.size() < current_pattern.size()) {
 						best_pattern = new ArrayList<HashMap<E, T> >(current_pattern);
@@ -117,18 +126,18 @@ public abstract class Repair<E> {
 		
 		int j = 0;
 		for(int i = 0; i < rows.size(); i++) {
-			if(!compareArray(corePatterns.get(j).get(0), rows.get(i), this.x_attributes)) {
+			if(!compareArray(corePatterns.get(j).get(0), rows.get(i), this.mfd.getX_attributes())) {
 				j++;
 			}
 			
 			if(!corePatterns.get(j).contains(rows.get(i))) {
-				T result = getTarget(corePatterns.get(j), rows.get(i), this.y_attribute, this.delta);
+				T result = getTarget(corePatterns.get(j), rows.get(i), this.mfd.getY_attribute(), this.mfd.getDelta());
 				
 				// If we are using values that cannot be subtracted we can incur a larger cost and only use values from within the active domain.
-				//Integer cost = distance(rows.get(i).get(this.y_attribute), result);
+				//Integer cost = distance(rows.get(i).get(this.mfd.getY_attribute()), result);
 
 				// Repair to the right hand side
-				rows.get(i).put(this.y_attribute, result);
+				rows.get(i).put(this.mfd.getY_attribute(), result);
 			}
 		}
 	}
@@ -149,11 +158,11 @@ public abstract class Repair<E> {
 		int j = 0;
 		for(int i = 0; i < rows.size(); i++) {
 			
-			if(!compareArray(corePatterns.get(j).get(0), rows.get(i), this.x_attributes)) {
+			if(!compareArray(corePatterns.get(j).get(0), rows.get(i), this.mfd.getX_attributes())) {
 				j++;
 			}
 			
-			/*if(corePatterns.get(j).get(0).get(this.y_attribute).equals(rows.get(i).get(this.y_attribute))) {
+			/*if(corePatterns.get(j).get(0).get(this.mfd.getY_attribute()).equals(rows.get(i).get(this.mfd.getY_attribute()))) {
 				j++;
 			}*/
 			
@@ -162,7 +171,7 @@ public abstract class Repair<E> {
 				closest = findClosest(rows.get(i), corePatterns, j);
 			
 				// Repair the left hand side.
-				setArray(rows.get(i), closest.getRow(), this.x_attributes);
+				setArray(rows.get(i), closest.getRow(), this.mfd.getX_attributes());
 			}			
 		}
 	}
@@ -179,26 +188,26 @@ public abstract class Repair<E> {
 		Candidate<E, T> closest;
 		T result;
 		for(int i = 0; i < rows.size(); i++) {
-			if(!compareArray(corePatterns.get(j).get(0), rows.get(i), this.x_attributes)) {
+			if(!compareArray(corePatterns.get(j).get(0), rows.get(i), this.mfd.getX_attributes())) {
 				j++;
 			}
 			
 			// Check if the row is already within the corePattern set (aka already repaired)
 			if(!corePatterns.get(j).contains(rows.get(i))) {
-				result = getTarget(corePatterns.get(j), rows.get(i), this.y_attribute, this.delta);
+				result = getTarget(corePatterns.get(j), rows.get(i), this.mfd.getY_attribute(), this.mfd.getDelta());
 				
 				// If we are using values that cannot be subtracted we can incur a larger cost and only use values from within the active domain.
-				Integer cost = distance(rows.get(i).get(this.y_attribute), result);
+				Integer cost = distance(rows.get(i).get(this.mfd.getY_attribute()), result);
 				
 				closest = findClosest(rows.get(i), corePatterns, j);
 				
 				if(closest == null || cost <= closest.getDistance()) {
 					// Repair to the right hand side cost
-					rows.get(i).put(this.y_attribute, result);
+					rows.get(i).put(this.mfd.getY_attribute(), result);
 				}
 				else {
 					// Repair the left hand side.
-					setArray(rows.get(i), closest.getRow(), this.x_attributes);
+					setArray(rows.get(i), closest.getRow(), this.mfd.getX_attributes());
 				}
 			}
 		}
@@ -237,10 +246,10 @@ public abstract class Repair<E> {
 		for(int i = 0; i < corePatterns.size(); i++) {
 			if(index != i) {				
 				// Search the core patterns for a match between the Y attribute values
-				if(BinarySearch.binarySearch(corePatterns.get(i), row.get(this.y_attribute), this.y_attribute) != null) {
+				if(BinarySearch.binarySearch(corePatterns.get(i), row.get(this.mfd.getY_attribute()), this.mfd.getY_attribute()) != null) {
 					// The Y attribute values match identify the cost of converting
 					// All corePatterns will have the same X attributes so any will do.
-					cost = arrayDistance(row, corePatterns.get(i).get(0), this.x_attributes);
+					cost = arrayDistance(row, corePatterns.get(i).get(0), this.mfd.getX_attributes());
 					if(best_cost == null || best_cost.getDistance() > cost) {
 						// Set the first cost to the min_cost
 						best_cost = new Candidate<E, T>(corePatterns.get(i).get(0), cost);
@@ -287,7 +296,7 @@ public abstract class Repair<E> {
 	/* TODO remove
 	private HashMap<String, Object> findSimilar(HashMap<String, Object> row, ArrayList<HashMap<String, Object> > corePattern) {
 		for(int i = 0; i < corePattern.size(); i++) {
-			if(corePattern.get(i).get(this.y_attribute).equals(row.get(this.y_attribute))) {
+			if(corePattern.get(i).get(this.mfd.getY_attribute()).equals(row.get(this.mfd.getY_attribute()))) {
 				// A potential match
 				return corePattern.get(i);
 			}
@@ -338,7 +347,7 @@ public abstract class Repair<E> {
 	 * @return
 	 */
 	private <T> boolean satisftyMFD(T left, T right) {
-		return distance(left, right) <= this.delta;
+		return distance(left, right) <= this.mfd.getDelta();
 	}
 	
 	/**

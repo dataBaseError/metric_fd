@@ -43,8 +43,9 @@ public class Tester {
 				}
 				System.out.println();
 			}*/
+			MetricFD<String> mfd = new MetricFD<String>(x_attributes, y_attribute, delta);
 			
-			Repair<String> re = new Repair<String>(x_attributes, y_attribute, delta) {
+			Repair<String> re = new Repair<String>(mfd) {
 
 				@Override
 				public Integer distance(Object left, Object right) {
