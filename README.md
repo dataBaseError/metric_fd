@@ -1,7 +1,7 @@
 # Metric FD
 Implementation to repair Metric Functional Dependencies
 
-## Install
+## Software Install
 
 1. Set up Java
 
@@ -23,4 +23,26 @@ Implementation to repair Metric Functional Dependencies
 
 8. Click Okay once completed to close the dialog.
 
-9. 
+## Database Setup
+
+1. Ensure postgresql is running:
+
+        sudo service postgresql restart
+
+2. Create the database:
+
+        sudo -u postgres createdb movies
+
+3. Open the new connection
+
+        sudo -u postgres psql movies
+
+4. Paste the schema into the database.
+
+5. Load the dataset into the database
+
+        COPY "movie" from '/path/to/database/csv_database.txt';
+
+6. Update the user's password (where `test123` is the new password):
+
+        ALTER USER postgres with password 'test123';
