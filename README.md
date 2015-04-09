@@ -11,7 +11,7 @@ Implementation to repair Metric Functional Dependencies
 
 2. Install postgresql
 
-		sudo apt-get install postgresql-9.3
+		sudo apt-get install postgresql-9.3 postgresql-client libpq5 libpq-dev
 
 3. Install JDBC for postgresql found [here](https://jdbc.postgresql.org/download.html)
 
@@ -72,11 +72,17 @@ Implementation to repair Metric Functional Dependencies
 
         sudo -u postgres psql clean_flight < doc/clean_flight.sql
 
-3. Load in the values using the script.
+3. Install [ruby2.2](https://gorails.com/setup/ubuntu/14.10) you need only install ruby not rails.
 
-        sudo -u postgres psql clean_flight
-        COPY "clean_flight" from 'doc/csv_database.txt' WITH copy DATESTYLE
+4. Install ruby headers.
 
-        SET DateStyle TO Sql
-        SET DateStyle TO Iso
-        set datestyle to DMY; % seemed to work
+	sudo apt-get install ruby-dev
+
+5. Install ruby dependencies
+
+	sudo apt-get install libpq-dev
+	bundle install
+
+6. Load in the values using the script.
+
+	ruby inserter.rb /path/to/clean_flight/db.txt > log.txt
