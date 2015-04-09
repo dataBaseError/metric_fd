@@ -23,7 +23,11 @@ Implementation to repair Metric Functional Dependencies
 
 8. Click Okay once completed to close the dialog.
 
-## Database Setup
+9. Update the user's password (where `test123` is the new password):
+
+        ALTER USER postgres with password 'test123';
+
+## Movies Database Setup
 
 1. Ensure postgresql is running:
 
@@ -33,16 +37,30 @@ Implementation to repair Metric Functional Dependencies
 
         sudo -u postgres createdb movies
 
-3. Open the new connection
+3. Add the schema the schema into the database.
+
+        sudo -u postgres psql movies < doc/database.sql
+
+4. Load the dataset into the database
 
         sudo -u postgres psql movies
+        COPY "database" from 'doc/csv_database.txt';
 
-4. Paste the schema into the database.
+## Flight Data Setup
 
-5. Load the dataset into the database
+1. Create the database
 
-        COPY "movie" from '/path/to/database/csv_database.txt';
+        sudo -u postgres createdb clean_flight
 
-6. Update the user's password (where `test123` is the new password):
+2. Load the schema
 
-        ALTER USER postgres with password 'test123';
+        sudo -u postgres psql clean_flight < doc/clean_flight.sql
+
+3. Load in the values using the script.
+
+        sudo -u postgres psql clean_flight
+        COPY "clean_flight" from 'doc/csv_database.txt' WITH copy DATESTYLE
+
+        SET DateStyle TO Sql
+        SET DateStyle TO Iso
+        set datestyle to DMY; % seemed to work
