@@ -1,0 +1,16 @@
+provider string, flight_number string, ScheduledDeparture string/datetime, ActualDeparture string/datetime, departure_id string, ScheduledArrival string/datetime, ActualArrival string/datetime, arrival_id string
+
+The MFDs are defined as:
+# Flight# -> ScheduledDeparture,  Flight# -> ActualDeparture,  Flight# -> ScheduledArrival,  Flight# -> ActualArrival
+
+
+flight_number -> ScheduledDeparture
+flight_number -> ActualDeparture
+flight_number -> ScheduledArrival
+flight_number -> ActualArrival
+
+Need to store the time stamps to integers
+
+ 
+
+INSERT INTO clean_flight (provider, flight_number, schedualed_departure, actual_departure, departure_id, schedualed_arrival, actual_arrival, arrival_id) VALUES ('aa', 'AA-1007-TPA-MIA', 1, 2, 'F78', 3, 3, 'D5');

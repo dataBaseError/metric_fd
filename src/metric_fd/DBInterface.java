@@ -79,8 +79,15 @@ public class DBInterface {
 					type = rsmd.getColumnTypeName(i+1);
 					
 					// TODO catch other types of integer values.
-					if(type.equalsIgnoreCase("int4")) {
-						val = (Comparable) rs.getInt(i+1);
+					if(type.equalsIgnoreCase("int4") || type.equalsIgnoreCase("int8")) {
+						if(rs.getString(i+1) == null) {
+							val = null;
+						} else {
+							val = (Comparable) rs.getInt(i+1);
+						}
+					}
+					else if (type.equalsIgnoreCase("serial")) {
+						val = (Comparable) rs.getLong(i+1);
 					}
 					// TODO catch other types of floating point values
 					else if(type.equalsIgnoreCase("double")) {
@@ -100,6 +107,37 @@ public class DBInterface {
 		return result;
 	}
 	
+	public void updateRows(String table, ArrayList<HashMap<String, Comparable > > values, String identifier, ArrayList<String > attributes) {
+		Statement st;
+		
+		try {
+			st = conn.createStatement();
+			
+			for(int i = 0; i < values.size(); i++) {
+				
+				String update_list = linearize_with_value(attributes, values.get(i));
+				
+				st.addBatch("UPDATE " + table + " SET " + update_list + " WHERE " + identifier + " = " + values.get(i).get(identifier));
+			}
+			st.executeBatch();
+			//conn.commit();
+			st.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private String linearize_with_value(ArrayList<String> attributes, HashMap<String, Comparable > values) {
+		String attributes_list = "";
+		for(int i = 0; i < attributes.size(); i++) {
+			attributes_list += attributes.get(i) + " = " + "'" + values.get(attributes.get(i)) + "'";
+			if (i + 1 != attributes.size()) {
+				attributes_list += ", ";
+			}
+		}
+		return attributes_list;
+	}
+
 	private String linearize(ArrayList<String > attributes) {
 		String attributes_list = "";
 		for(int i = 0; i < attributes.size(); i++) {

@@ -1,12 +1,14 @@
 package metric_fd;
 
+import java.util.ArrayList;
+
 public class MetricFD<E> {
 	
-	private E[] x_attributes;
+	private ArrayList<E> x_attributes;
 	private E y_attribute;
 	private Integer delta;
 	
-	public MetricFD(E[] x_attributes, E y_attribute, Integer delta) {
+	public MetricFD(ArrayList<E> x_attributes, E y_attribute, Integer delta) {
 		this.x_attributes = x_attributes;
 		this.y_attribute = y_attribute;
 		this.delta = delta;
@@ -16,7 +18,7 @@ public class MetricFD<E> {
 	 * Get the LHS attributes for the MFD
 	 * @return the x_attributes
 	 */
-	public E[] getX_attributes() {
+	public ArrayList<E> getX_attributes() {
 		return x_attributes;
 	}
 
@@ -24,7 +26,7 @@ public class MetricFD<E> {
 	 * Set the LHS attributes for the MFD
 	 * @param x_attributes the x_attributes to set
 	 */
-	public void setX_attributes(E[] x_attributes) {
+	public void setX_attributes(ArrayList<E> x_attributes) {
 		this.x_attributes = x_attributes;
 	}
 
