@@ -1,0 +1,15 @@
+#!/bin/bash
+
+if [ $# -eq 1 ]; then
+    DIR=$1
+else
+    echo "Invalid number of args"
+    exit 1
+fi
+
+for file in $(ls "${DIR}");
+do
+    echo "Working on ${file}"
+    ruby inserter.rb "${DIR}${file}" > ${file}.log
+    echo "Finished..."
+done
