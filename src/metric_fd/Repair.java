@@ -37,9 +37,10 @@ public abstract class Repair<E> {
 		ArrayList<HashMap<E, T> > best_pattern = new ArrayList<HashMap<E, T> >();
 		ArrayList<HashMap<E, T> > current_pattern = new ArrayList<HashMap<E, T> >();
 		HashMap<E, T> min_row = null;
+		boolean invalid = false;
 		
 		for(int i = 0; i < rows.size(); i++) {
-			if (i > 0) {
+			if (min_row != null && min_row.get(this.mfd.getY_attribute()) != null) {
 				if(!compareArray(rows.get(i-1), rows.get(i), this.mfd.getX_attributes())) {
 					// The X values do not match
 					
@@ -55,6 +56,10 @@ public abstract class Repair<E> {
 					best_pattern.clear();
 					min_row = rows.get(i);					
 				}
+				else if(rows.get(i).get(this.mfd.getY_attribute()) == null) {
+					// This row should be marked for repair
+					invalid = true;
+				}
 				else if(!satisftyMFD(min_row.get(this.mfd.getY_attribute()), rows.get(i).get(this.mfd.getY_attribute()))) {
 					// The Y value does not satisfy the MFD
 					if(best_pattern.size() < current_pattern.size()) {
@@ -63,9 +68,16 @@ public abstract class Repair<E> {
 					current_pattern.clear();
 					min_row = rows.get(i);
 				}
-				current_pattern.add(rows.get(i));
+				if(!invalid) {
+					current_pattern.add(rows.get(i));
+				}
+				else {
+					invalid = false;					
+				}
+				
 			}
 			else {
+				current_pattern.clear();
 				min_row = rows.get(i);
 				current_pattern.add(rows.get(i));				
 			}
@@ -108,7 +120,7 @@ public abstract class Repair<E> {
 		return ((Integer) min(g_attributes) - delta);*/
 		
 		// This lowest cost will convert the value to lowest cost value within the active domain (of that corePattern
-		if(arrayList.get(0).get(y_attribute2).compareTo(hashMap.get(y_attribute2)) > 0) {
+		if(hashMap.get(y_attribute2) == null || arrayList.get(0).get(y_attribute2).compareTo(hashMap.get(y_attribute2)) > 0) {
 			return min(g_attributes);
 		}
 		return max(g_attributes);
@@ -131,6 +143,7 @@ public abstract class Repair<E> {
 			}
 			
 			if(!corePatterns.get(j).contains(rows.get(i))) {
+				
 				T result = getTarget(corePatterns.get(j), rows.get(i), this.mfd.getY_attribute(), this.mfd.getDelta());
 				
 				// If we are using values that cannot be subtracted we can incur a larger cost and only use values from within the active domain.
@@ -182,12 +195,13 @@ public abstract class Repair<E> {
 	 * @param rows The list of tuples from the database.
 	 * @param corePatterns The set of corePatterns created from the createCorePatterns method.
 	 */
-	public <T extends Comparable<T> > void costAnalysis(ArrayList<HashMap<E, T> > rows, ArrayList<ArrayList<HashMap<E, T> > > corePatterns) {
+	public <T extends Comparable<T> > ArrayList<HashMap<E, T> > costAnalysis(ArrayList<HashMap<E, T> > rows, ArrayList<ArrayList<HashMap<E, T> > > corePatterns) {
 		
 		int j = 0;
-		Candidate<E, T> closest;
+		Candidate<E, T> closest = null;
 		T result;
 		for(int i = 0; i < rows.size(); i++) {
+			// This doesn't handle the case where a core pattern does not exist for the given set of X values
 			if(!compareArray(corePatterns.get(j).get(0), rows.get(i), this.mfd.getX_attributes())) {
 				j++;
 			}
@@ -196,12 +210,18 @@ public abstract class Repair<E> {
 			if(!corePatterns.get(j).contains(rows.get(i))) {
 				result = getTarget(corePatterns.get(j), rows.get(i), this.mfd.getY_attribute(), this.mfd.getDelta());
 				
-				// If we are using values that cannot be subtracted we can incur a larger cost and only use values from within the active domain.
-				Integer cost = distance(rows.get(i).get(this.mfd.getY_attribute()), result);
+				// If the right side is null then we must repair it to the LHS it is apart of.
+				Integer cost = null;
+				if(rows.get(i).get(this.mfd.getY_attribute()) != null) {
+					// If we are using values that cannot be subtracted we can incur a larger cost and only use values from within the active domain.
+					cost = distance(rows.get(i).get(this.mfd.getY_attribute()), result);
+				}
 				
-				closest = findClosest(rows.get(i), corePatterns, j);
+				if(cost != null) {
+					closest = findClosest(rows.get(i), corePatterns, j);
+				}
 				
-				if(closest == null || cost <= closest.getDistance()) {
+				if(closest == null || cost == null || cost <= closest.getDistance()) {
 					// Repair to the right hand side cost
 					rows.get(i).put(this.mfd.getY_attribute(), result);
 				}
@@ -211,6 +231,7 @@ public abstract class Repair<E> {
 				}
 			}
 		}
+		return rows;
 	}
 	
 	/**
@@ -221,9 +242,9 @@ public abstract class Repair<E> {
 	 * @param target The HashMap containing the target values
 	 * @param attributes The attributes to update in the rows HashMap.
 	 */
-	private static <E, T extends Comparable<T> > void setArray(HashMap<E, T> row, HashMap<E, T> target, E[] attributes) {
-		for(int i = 0; i < attributes.length; i++) {
-			row.put(attributes[i], target.get(attributes[i]));
+	private static <E, T extends Comparable<T> > void setArray(HashMap<E, T> row, HashMap<E, T> target, ArrayList<E> attributes) {
+		for(int i = 0; i < attributes.size(); i++) {
+			row.put(attributes.get(i), target.get(attributes.get(i)));
 		}
 	}
 	
@@ -311,12 +332,12 @@ public abstract class Repair<E> {
 	 * @param attributes
 	 * @return
 	 */
-	private <T extends Comparable<T> > Integer arrayDistance(HashMap<E, T> left, HashMap<E, T> right, E[] attributes) {
+	private <T extends Comparable<T> > Integer arrayDistance(HashMap<E, T> left, HashMap<E, T> right, ArrayList<E> attributes) {
 		
 		Integer cost = 0;
-		for(int i = 0; i < attributes.length; i++) {
+		for(int i = 0; i < attributes.size(); i++) {
 			// Get the distance of each attribute to the base.
-			cost += distance(left.get(attributes[i]), right.get(attributes[i]));
+			cost += distance(left.get(attributes.get(i)), right.get(attributes.get(i)));
 		}
 		
 		return cost;
@@ -330,10 +351,10 @@ public abstract class Repair<E> {
 	 * @param attributes
 	 * @return
 	 */
-	private static <E, F> boolean compareArray(HashMap<E, F> element1, HashMap<E, F> element2, E[] attributes) {
-		for(int i = 0; i < attributes.length; i++) {
+	private static <E, F> boolean compareArray(HashMap<E, F> element1, HashMap<E, F> element2, ArrayList<E> attributes) {
+		for(int i = 0; i < attributes.size(); i++) {
 			// Use the base Object's equals method.
-			if (!element1.get(attributes[i]).equals(element2.get(attributes[i]))) {
+			if (!element1.get(attributes.get(i)).equals(element2.get(attributes.get(i)))) {
 				return false;
 			}
 		}		
