@@ -76,13 +76,13 @@ Implementation to repair Metric Functional Dependencies
 
 4. Install ruby headers.
 
-	sudo apt-get install ruby-dev
+        sudo apt-get install ruby-dev
 
 5. Install ruby dependencies
 
-	sudo apt-get install libpq-dev
-	bundle install
+        sudo apt-get install libpq-dev
+        bundle install
 
 6. Load in the values using the script.
 
-	ruby inserter.rb /path/to/clean_flight/db.txt > log.txt
+        ruby inserter.rb /path/to/clean_flight/db.txt > log.txt
