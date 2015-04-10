@@ -83,6 +83,18 @@ Implementation to repair Metric Functional Dependencies
         sudo apt-get install libpq-dev
         bundle install
 
-6. Load in the values using the script.
+6. Mass load in the `clean_flight` dataset:
+
+        bash import_all /path/to/directory/containing/clean_flight/
+
+7. Alteratively, load in the values of a single file using the script.
 
         ruby inserter.rb /path/to/clean_flight/db.txt > log.txt
+
+## Execute Runner
+
+1. Set the the database and delta you wish to use
+
+2. Run the script
+
+        bash runner

@@ -7,9 +7,11 @@ else
     exit 1
 fi
 
+mkdir -p log/
+
 for file in $(ls "${DIR}");
 do
     echo "Working on ${file}"
-    ruby inserter.rb "${DIR}${file}" > ${file}.log
+    ruby inserter.rb "${DIR}${file}" > log/${file}.log
     echo "Finished..."
 done

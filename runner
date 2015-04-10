@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# java -classpath "lib/*:bin/" metric_fd.Tester
+
+DATABASE=movies
+DELTA=10
+TIMES=50
+
+for ((i=1;i<=${TIMES};i++))
+do
+    # Use of redirect stderr and stdout to the tee
+    { time java -classpath "lib/*:bin/" metric_fd.Tester ${DATABASE} ${DELTA}; } 2>&1 | tee -a ${DATABASE}_${DELTA}_performance.log
+done
