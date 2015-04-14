@@ -9,17 +9,21 @@ public class Tester {
 		
 		String username = "postgres";
 		String password = "password";
-		
-		if(args != null && args.length > 0 && args[0].equalsIgnoreCase("movies")) {
-			testMovies(username, password);
-		}
+		if(args != null && args.length >= 2) {
+			if(args[0].equalsIgnoreCase("movies")) {
+				testMovies(username, password, Integer.parseInt(args[1]));
+			}
+			else {
+				testFlight(username, password, Integer.parseInt(args[1]));
+			}
+		} 
 		else {
-			testFlight(username, password);
+			System.out.println("Not enough args");
 		}
 		
 	}
 	
-	private static void testFlight(String username, String password) {
+	private static void testFlight(String username, String password, Integer delta) {
 		String db_name = "clean_flight";
 		DBInterface db = new DBInterface(db_name, username, password);
 		
@@ -27,7 +31,7 @@ public class Tester {
 		x_attributes.add("flight_number");
 		String table_name = "clean_flight";
 		// Vary by 1000 milliseconds
-		Integer delta = 1000;
+		//Integer delta = 1000;
 		
 		/*
 		flight_number -> ScheduledDeparture
@@ -110,7 +114,7 @@ public class Tester {
 		}
 	}
 
-	private static void testMovies(String username, String password) {
+	private static void testMovies(String username, String password, Integer delta) {
 		String db_name = "movies";
 		DBInterface db = new DBInterface(db_name, username, password);
 		
@@ -118,7 +122,7 @@ public class Tester {
 		x_attributes.add("name");
 		String y_attribute = "duration";
 		String table_name = "movie";
-		Integer delta = 5;
+		//Integer delta = 5;
 		
 		ArrayList<String> attributes = new ArrayList<String>();
 		attributes.add("website");
