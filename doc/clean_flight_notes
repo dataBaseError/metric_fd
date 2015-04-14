@@ -14,3 +14,5 @@ Need to store the time stamps to integers
  
 
 INSERT INTO clean_flight (provider, flight_number, schedualed_departure, actual_departure, departure_id, schedualed_arrival, actual_arrival, arrival_id) VALUES ('aa', 'AA-1007-TPA-MIA', 1, 2, 'F78', 3, 3, 'D5');
+
+UPDATE clean_flight SET flight_number = 'aa', schedualed_departure = 324213432 WHERE id = 1
