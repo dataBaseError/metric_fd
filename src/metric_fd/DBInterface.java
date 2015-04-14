@@ -129,13 +129,24 @@ public class DBInterface {
 			st.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
+			System.out.println("Exception: " + e.getNextException());
 		}
 	}
 	
 	private String linearize_with_value(ArrayList<String> attributes, HashMap<String, Comparable > values) {
 		String attributes_list = "";
+		String tempValue = "";
 		for(int i = 0; i < attributes.size(); i++) {
-			attributes_list += attributes.get(i) + " = " + "'" + values.get(attributes.get(i)) + "'";
+			
+			if(values.get(attributes.get(i)) != null)
+			{ 
+				tempValue = "'" + values.get(attributes.get(i)) + "'";
+			}
+			else {
+				tempValue = "null";
+			}
+			
+			attributes_list += attributes.get(i) + " = " + tempValue;
 			if (i + 1 != attributes.size()) {
 				attributes_list += ", ";
 			}

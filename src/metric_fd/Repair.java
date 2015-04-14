@@ -219,6 +219,7 @@ public abstract class Repair<E> {
 						if(!compareArray(corePatterns.get(j).get(0), rows.get(i), this.mfd.getX_attributes())) {
 							// Bad tuples ignore them!
 							badTuples.add(rows.get(i));
+							rows.remove(i);
 							j--;
 							skip = true;
 							break;
