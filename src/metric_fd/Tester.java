@@ -106,7 +106,9 @@ public class Tester {
 					System.out.println();
 				}
 				System.out.println("Finished " + i);
-				ArrayList<HashMap<String, Comparable > > result = re.costAnalysis(rows, corePatterns);
+				
+				ArrayList<HashMap<String, Comparable > > badResults = new ArrayList<HashMap<String, Comparable > >();
+				ArrayList<HashMap<String, Comparable > > result = re.costAnalysis(rows, corePatterns, badResults);
 				
 				// TODO update datebase with new values
 				db.updateRows(table_name, result, attributes.get(0), group_by);
@@ -182,8 +184,9 @@ public class Tester {
 				}
 				System.out.println();
 			}
-			
-			re.costAnalysis(rows, corePatterns);
+
+			ArrayList<HashMap<String, Comparable > > badResults = new ArrayList<HashMap<String, Comparable > >();
+			re.costAnalysis(rows, corePatterns, badResults);
 		}
 	}
 

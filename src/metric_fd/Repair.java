@@ -41,7 +41,7 @@ public abstract class Repair<E> {
 		
 		for(int i = 0; i < rows.size(); i++) {
 			if (min_row != null && min_row.get(this.mfd.getY_attribute()) != null) {
-				if(!compareArray(rows.get(i-1), rows.get(i), this.mfd.getX_attributes())) {
+				if(!compareArrayElements(rows.get(i-1), rows.get(i), this.mfd.getX_attributes())) {
 					// The X values do not match
 					
 					// Add the best pattern to the core pattern
@@ -138,7 +138,7 @@ public abstract class Repair<E> {
 		
 		int j = 0;
 		for(int i = 0; i < rows.size(); i++) {
-			if(!compareArray(corePatterns.get(j).get(0), rows.get(i), this.mfd.getX_attributes())) {
+			if(!compareArrayElements(corePatterns.get(j).get(0), rows.get(i), this.mfd.getX_attributes())) {
 				j++;
 			}
 			
@@ -171,7 +171,7 @@ public abstract class Repair<E> {
 		int j = 0;
 		for(int i = 0; i < rows.size(); i++) {
 			
-			if(!compareArray(corePatterns.get(j).get(0), rows.get(i), this.mfd.getX_attributes())) {
+			if(!compareArrayElements(corePatterns.get(j).get(0), rows.get(i), this.mfd.getX_attributes())) {
 				j++;
 			}
 			
@@ -195,41 +195,81 @@ public abstract class Repair<E> {
 	 * @param rows The list of tuples from the database.
 	 * @param corePatterns The set of corePatterns created from the createCorePatterns method.
 	 */
-	public <T extends Comparable<T> > ArrayList<HashMap<E, T> > costAnalysis(ArrayList<HashMap<E, T> > rows, ArrayList<ArrayList<HashMap<E, T> > > corePatterns) {
+	public <T extends Comparable<T> > ArrayList<HashMap<E, T> > costAnalysis(ArrayList<HashMap<E, T> > rows, ArrayList<ArrayList<HashMap<E, T> > > corePatterns, ArrayList<HashMap<E, T > > badTuples) {
 		
 		int j = 0;
 		Candidate<E, T> closest = null;
+		boolean skip = false;
 		T result;
 		for(int i = 0; i < rows.size(); i++) {
 			// This doesn't handle the case where a core pattern does not exist for the given set of X values
-			if(!compareArray(corePatterns.get(j).get(0), rows.get(i), this.mfd.getX_attributes())) {
-				j++;
-			}
 			
-			// Check if the row is already within the corePattern set (aka already repaired)
-			if(!corePatterns.get(j).contains(rows.get(i))) {
-				result = getTarget(corePatterns.get(j), rows.get(i), this.mfd.getY_attribute(), this.mfd.getDelta());
-				
-				// If the right side is null then we must repair it to the LHS it is apart of.
-				Integer cost = null;
-				if(rows.get(i).get(this.mfd.getY_attribute()) != null) {
-					// If we are using values that cannot be subtracted we can incur a larger cost and only use values from within the active domain.
-					cost = distance(rows.get(i).get(this.mfd.getY_attribute()), result);
-				}
-				
-				if(cost != null) {
-					closest = findClosest(rows.get(i), corePatterns, j);
-				}
-				
-				if(closest == null || cost == null || cost <= closest.getDistance()) {
-					// Repair to the right hand side cost
-					rows.get(i).put(this.mfd.getY_attribute(), result);
+			// Need to check if 
+			for(int k = 0; k < 2 ; k++) {
+				if(!compareArrayElements(corePatterns.get(j).get(0), rows.get(i), this.mfd.getX_attributes())) {
+					
+					if(k == 1) {
+						// The deviant tuple does not match to Core Tuple at j+1 or j+2.
+						// There are two possible reasons for this:
+						// 1. Core Tuples j+1, j+2 do not have any related deviant tuples.
+							// We can tell if it is this case by testing whether the X_attributes for the Core Tuple j+1 is less than the deviant tuple's X attributes.
+								// 1. they are less than those CoreTuples do not have any values keep checking. Currently every CoreTuple will have tuples in rows (cause they are never removed).
+								// 2. Else the deviant pattern is unrepairable.
+						// 2. Deviant tuple is part of unrepairable class (e.g. all deviants have null as their Y attribute) no valid value to repair them to).
+						if(!compareArray(corePatterns.get(j).get(0), rows.get(i), this.mfd.getX_attributes())) {
+							// Bad tuples ignore them!
+							badTuples.add(rows.get(i));
+							j--;
+							skip = true;
+							break;
+						}
+					}
+					j++;
+					
 				}
 				else {
-					// Repair the left hand side.
-					setArray(rows.get(i), closest.getRow(), this.mfd.getX_attributes());
+					if(k == 1)
+					{
+						// A deviant tuple for the next core tuple set is the current tuple
+					}
+					else {
+						// Current Core tuple set relates to deviant tuple
+					}
+					break;
 				}
 			}
+			
+			if(!skip) {
+			
+				// Check if the row is already within the corePattern set (aka already repaired)
+				if(!corePatterns.get(j).contains(rows.get(i))) {
+					result = getTarget(corePatterns.get(j), rows.get(i), this.mfd.getY_attribute(), this.mfd.getDelta());
+					
+					// If the right side is null then we must repair it to the LHS it is apart of.
+					Integer cost = null;
+					if(rows.get(i).get(this.mfd.getY_attribute()) != null) {
+						// If we are using values that cannot be subtracted we can incur a larger cost and only use values from within the active domain.
+						cost = distance(rows.get(i).get(this.mfd.getY_attribute()), result);
+					}
+					
+					if(cost != null) {
+						closest = findClosest(rows.get(i), corePatterns, j);
+					}
+					
+					if(closest == null || cost == null || cost <= closest.getDistance()) {
+						// Repair to the right hand side cost
+						rows.get(i).put(this.mfd.getY_attribute(), result);
+					}
+					else {
+						// Repair the left hand side.
+						setArray(rows.get(i), closest.getRow(), this.mfd.getX_attributes());
+					}
+				}
+			}
+			else {
+				skip = false;
+			}
+			
 		}
 		return rows;
 	}
@@ -351,10 +391,27 @@ public abstract class Repair<E> {
 	 * @param attributes
 	 * @return
 	 */
-	private static <E, F> boolean compareArray(HashMap<E, F> element1, HashMap<E, F> element2, ArrayList<E> attributes) {
+	private static <E, F> boolean compareArrayElements(HashMap<E, F> element1, HashMap<E, F> element2, ArrayList<E> attributes) {
 		for(int i = 0; i < attributes.size(); i++) {
 			// Use the base Object's equals method.
 			if (!element1.get(attributes.get(i)).equals(element2.get(attributes.get(i)))) {
+				return false;
+			}
+		}		
+		return true;
+	}
+	
+	/**
+	 * Compare arrays using compare to method.
+	 * @param element1
+	 * @param element2
+	 * @param attributes
+	 * @return
+	 */
+	private static <E, F extends Comparable<F>> boolean compareArray(HashMap<E, F> element1, HashMap<E, F> element2, ArrayList<E> attributes) {
+		for(int i = 0; i < attributes.size(); i++) {
+			// Check if the first element is ever greater than (in terms of order) the second element.
+			if (element1.get(attributes.get(i)).compareTo(element2.get(attributes.get(i))) > 0) {
 				return false;
 			}
 		}		
