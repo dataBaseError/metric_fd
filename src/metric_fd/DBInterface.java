@@ -59,7 +59,7 @@ public class DBInterface {
 	}
 	
 	@SuppressWarnings("rawtypes")
-	public ArrayList<HashMap<String, Comparable > > get_sorted(String table_name, ArrayList<String > attributes, ArrayList<String > group_by) {
+	public ArrayList<HashMap<String, Comparable > > get_sorted(String table_name, ArrayList<String > attributes, ArrayList<String > group_by, int limit) {
 		Statement st;
 		ArrayList<HashMap<String, Comparable > > result = new ArrayList<HashMap<String, Comparable > >();
 		try {
@@ -67,8 +67,13 @@ public class DBInterface {
 			
 			String attributes_list = linearize(attributes);
 			String group_list = linearize(group_by);
+			
+			String limit_string = "";
+			if(limit <= 0) {
+				limit_string = " LIMIT " + limit;
+			}
 		
-			ResultSet rs = st.executeQuery("SELECT " + attributes_list + " FROM " + table_name + " ORDER BY " + group_list);
+			ResultSet rs = st.executeQuery("SELECT " + attributes_list + " FROM " + table_name + " ORDER BY " + group_list + limit_string);
 			ResultSetMetaData rsmd = rs.getMetaData();
 			String type = null;
 			Comparable val = null;
