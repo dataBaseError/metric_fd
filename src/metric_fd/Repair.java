@@ -36,6 +36,10 @@ public abstract class Repair<E> {
 	public int getRepairCount() {
 		return this.repair_count;
 	}
+	
+	public void resetCleanRatio() {
+		clean_rate = 0;
+	}
 
 	/**
 	 * TODO complete doc

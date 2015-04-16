@@ -158,7 +158,8 @@ public class DBInterface {
 			}
 			
 			if(ps != null) {
-				int[] arr = ps.executeBatch();
+				//int[] arr = 
+				ps.executeBatch();
 				
 				ps.close();
 			}

@@ -113,7 +113,8 @@ public class Tester {
 				
 				ArrayList<HashMap<String, Comparable > > badResults = new ArrayList<HashMap<String, Comparable > >();
 				ArrayList<HashMap<String, Comparable > > result = re.costAnalysis(rows, corePatterns, badResults);
-				
+			
+				re.resetCleanRatio();
 				corePatterns = re.createCorePatterns(result);
 				
 				System.out.println("Clean rate = " + (re.getCleanRate() / (double) rows.size()) * 100);
@@ -209,6 +210,7 @@ public class Tester {
 			ArrayList<HashMap<String, Comparable > > badResults = new ArrayList<HashMap<String, Comparable > >();
 			ArrayList<HashMap<String, Comparable > > result = re.costAnalysis(rows, corePatterns, badResults);
 			
+			re.resetCleanRatio();
 			corePatterns = re.createCorePatterns(result);
 			
 			System.out.println("Clean rate = " + (re.getCleanRate() / (double) rows.size()) * 100);
