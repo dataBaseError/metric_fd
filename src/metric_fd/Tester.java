@@ -9,12 +9,12 @@ public class Tester {
 		
 		String username = "postgres";
 		String password = "password";
-		if(args != null && args.length >= 2) {
+		if(args != null && args.length >= 3) {
 			if(args[0].equalsIgnoreCase("movies")) {
-				testMovies(username, password, Integer.parseInt(args[1]));
+				testMovies(username, password, Integer.parseInt(args[1]), Integer.parseInt(args[2]));
 			}
 			else {
-				testFlight(username, password, Integer.parseInt(args[1]));
+				testFlight(username, password, Integer.parseInt(args[1]), Integer.parseInt(args[2]));
 			}
 		} 
 		else {
@@ -23,7 +23,7 @@ public class Tester {
 		
 	}
 	
-	private static void testFlight(String username, String password, Integer delta) {
+	private static void testFlight(String username, String password, Integer delta, int limit) {
 		String db_name = "clean_flight";
 		DBInterface db = new DBInterface(db_name, username, password);
 		
@@ -61,9 +61,8 @@ public class Tester {
 			for(int i = 0; i < mfds.size(); i++) {
 				group_by.set(group_by.size()-1, mfds.get(i).getY_attribute());
 				attributes.set(attributes.size()-1, mfds.get(i).getY_attribute());
-				ArrayList<HashMap<String, Comparable > > rows = db.get_sorted(table_name, attributes, group_by);
+				ArrayList<HashMap<String, Comparable > > rows = db.get_sorted(table_name, attributes, group_by, limit);
 				System.out.println("Number of Tuples: " + rows.size());
-				
 				/*
 				for(int j = 0; j < attributes.size(); j++) {
 					System.out.print(attributes.get(j) + ", ");
@@ -132,7 +131,7 @@ public class Tester {
 		}
 	}
 
-	private static void testMovies(String username, String password, Integer delta) {
+	private static void testMovies(String username, String password, Integer delta, int limit) {
 		String db_name = "movies";
 		DBInterface db = new DBInterface(db_name, username, password);
 		
@@ -156,7 +155,7 @@ public class Tester {
 		
 		if(db.isConnected()) {
 			
-			ArrayList<HashMap<String, Comparable > > rows = db.get_sorted(table_name, attributes, group_by);
+			ArrayList<HashMap<String, Comparable > > rows = db.get_sorted(table_name, attributes, group_by, limit);
 			
 			System.out.println("Number of Tuples: " + rows.size());
 			/*
