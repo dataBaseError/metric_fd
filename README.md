@@ -60,7 +60,7 @@ Implementation to repair Metric Functional Dependencies
 4. Load the dataset into the database
 
         sudo -u postgres psql movies
-        COPY "database" from 'doc/csv_database.txt';
+        COPY "movie"(website, name, name_2, duration) from 'doc/csv_database.txt';
 
 ## Flight Data Setup
 

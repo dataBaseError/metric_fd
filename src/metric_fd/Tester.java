@@ -62,6 +62,7 @@ public class Tester {
 				group_by.set(group_by.size()-1, mfds.get(i).getY_attribute());
 				attributes.set(attributes.size()-1, mfds.get(i).getY_attribute());
 				ArrayList<HashMap<String, Comparable > > rows = db.get_sorted(table_name, attributes, group_by);
+				System.out.println("Number of Tuples: " + rows.size());
 				
 				/*
 				for(int j = 0; j < attributes.size(); j++) {
@@ -94,6 +95,11 @@ public class Tester {
 				
 				ArrayList<ArrayList<HashMap<String, Comparable > > > corePatterns = re.createCorePatterns(rows);
 				
+				System.out.println("MFD " + i);
+				System.out.println("Clean rate = " + (re.getCleanRate() / (double) rows.size()) * 100);
+				System.out.println("Error rate = " + (1.0 - (re.getCleanRate() / (double) rows.size())) * 100);
+				
+				/*
 				for(int k = 0; k < corePatterns.size(); k++) {
 					System.out.print("Group " + k);
 					System.out.println(" has " + corePatterns.get(k).size() + " elements in this pattern e.g.");
@@ -104,14 +110,24 @@ public class Tester {
 						}
 					}
 					System.out.println();
-				}
-				System.out.println("Finished " + i);
+				}*/
 				
 				ArrayList<HashMap<String, Comparable > > badResults = new ArrayList<HashMap<String, Comparable > >();
 				ArrayList<HashMap<String, Comparable > > result = re.costAnalysis(rows, corePatterns, badResults);
 				
-				// TODO update datebase with new values
-				db.updateRows(table_name, result, attributes.get(0), group_by);
+				corePatterns = re.createCorePatterns(result);
+				
+				System.out.println("Clean rate = " + (re.getCleanRate() / (double) rows.size()) * 100);
+				System.out.println("Error rate = " + (1.0 - (re.getCleanRate() / (double) rows.size())) * 100);
+				
+				System.out.println("Repair Count = " + re.getRepairCount());
+				System.out.println("Unrepairable Count = " + badResults.size());
+				System.out.println("Finished " + i);
+				
+				
+				if(re.getRepairCount() > 0) {
+					db.updateRows(table_name, result, attributes.get(0), group_by);
+				}
 			}
 		}
 	}
@@ -127,6 +143,7 @@ public class Tester {
 		//Integer delta = 5;
 		
 		ArrayList<String> attributes = new ArrayList<String>();
+		attributes.add("id");
 		attributes.add("website");
 		attributes.add("name");
 		attributes.add(y_attribute);
@@ -141,6 +158,7 @@ public class Tester {
 			
 			ArrayList<HashMap<String, Comparable > > rows = db.get_sorted(table_name, attributes, group_by);
 			
+			System.out.println("Number of Tuples: " + rows.size());
 			/*
 			for(int j = 0; j < attributes.size(); j++) {
 				System.out.print(attributes.get(j) + ", ");
@@ -173,6 +191,10 @@ public class Tester {
 			
 			ArrayList<ArrayList<HashMap<String, Comparable > > > corePatterns = re.createCorePatterns(rows);
 			
+			System.out.println("Clean rate = " + (re.getCleanRate() / (double) rows.size()) * 100);
+			System.out.println("Error rate = " + (1.0 - (re.getCleanRate() / (double) rows.size())) * 100);
+			
+			/*
 			for(int k = 0; k < corePatterns.size(); k++) {
 				System.out.print("Group " + k);
 				System.out.println(" has " + corePatterns.get(k).size() + " elements in this pattern e.g.");
@@ -183,10 +205,23 @@ public class Tester {
 					}
 				}
 				System.out.println();
-			}
+			}*/
 
 			ArrayList<HashMap<String, Comparable > > badResults = new ArrayList<HashMap<String, Comparable > >();
-			re.costAnalysis(rows, corePatterns, badResults);
+			ArrayList<HashMap<String, Comparable > > result = re.costAnalysis(rows, corePatterns, badResults);
+			
+			corePatterns = re.createCorePatterns(result);
+			
+			System.out.println("Clean rate = " + (re.getCleanRate() / (double) rows.size()) * 100);
+			System.out.println("Error rate = " + (1.0 - (re.getCleanRate() / (double) rows.size())) * 100);
+			
+			System.out.println("Repair Count = " + re.getRepairCount());
+			System.out.println("Unrepairable Count = " + badResults.size());
+			
+			// The attribute that the row is updated by must be UNIQUE!
+			if(re.getRepairCount() > 0) {
+				db.updateRows(table_name, result, attributes.get(0), group_by);
+			}
 		}
 	}
 

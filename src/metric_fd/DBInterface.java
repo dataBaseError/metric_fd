@@ -2,8 +2,11 @@ package metric_fd;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.Ref;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
+import java.sql.RowId;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -109,19 +112,54 @@ public class DBInterface {
 	
 	public void updateRows(String table, ArrayList<HashMap<String, Comparable > > values, String identifier, ArrayList<String > attributes) {
 		Statement st;
+		PreparedStatement ps = null;
+		int k = 0;
 		
 		try {
-			st = conn.createStatement();
-			
-			for(int i = 0; i < values.size(); i++) {
-				
-				String update_list = linearize_with_value(attributes, values.get(i));
-				
-				st.addBatch("UPDATE " + table + " SET " + update_list + " WHERE " + identifier + " = " + values.get(i).get(identifier));
+			//st = conn.createStatement();
+			//PreparedStatement ps;
+			//conn.setAutoCommit(false);
+			if(values.size() > 0) {
+				String update_list = linearize_with_value(attributes, values.get(0));
+				ps = conn.prepareStatement("UPDATE " + table + " SET " + update_list + " WHERE " + identifier + " = ?");
 			}
-			st.executeBatch();
+			for(int i = 0; i < values.size(); i++) {
+				for(k = 0; k < attributes.size(); k++) {
+					//ps.setString(k+1, "" + attributes.get(k));
+					
+					if(values.get(i).get(attributes.get(k)) != null)
+					{
+						if(values.get(i).get(attributes.get(k)) instanceof Integer) {
+							ps.setInt(k+1, (int) values.get(i).get(attributes.get(k)));
+						}
+						else {
+							ps.setString(k+1, ""+values.get(i).get(attributes.get(k)));
+						}
+					}
+					else {
+						if(values.get(i).get(attributes.get(k)) instanceof Integer) {
+							ps.setNull(k+1, java.sql.Types.INTEGER);
+						}
+						else {
+							ps.setNull(k+1, java.sql.Types.NVARCHAR);
+						}
+					}
+				}
+				ps.setLong(k+1, (Long) values.get(i).get(identifier));
+				//ps.
+				
+				//st.addBatch();
+				ps.addBatch();
+			}
+			
+			if(ps != null) {
+				int[] arr = ps.executeBatch();
+				
+				ps.close();
+			}
+			//st.executeBatch();
 			//conn.commit();
-			st.close();
+			//st.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
 			System.out.println("Exception: " + e.getNextException());
@@ -133,13 +171,15 @@ public class DBInterface {
 		String tempValue = "";
 		for(int i = 0; i < attributes.size(); i++) {
 			
+			/*
 			if(values.get(attributes.get(i)) != null)
 			{ 
-				tempValue = "'" + values.get(attributes.get(i)) + "'";
+				tempValue = "'" + clean(""+ values.get(attributes.get(i))) + "'";
 			}
 			else {
 				tempValue = "null";
-			}
+			}*/
+			tempValue = "?";
 			
 			attributes_list += attributes.get(i) + " = " + tempValue;
 			if (i + 1 != attributes.size()) {

@@ -20,9 +20,21 @@ public abstract class Repair<E> {
 	*/
 	
 	private MetricFD<E> mfd;
+	private int clean_rate;
+	private int repair_count;
 	
 	public Repair(MetricFD<E> mfd) {
 		this.mfd = mfd;
+		this.clean_rate = 0;
+		this.repair_count = 0;
+	}
+	
+	public int getCleanRate() {
+		return clean_rate;
+	}
+	
+	public int getRepairCount() {
+		return this.repair_count;
 	}
 
 	/**
@@ -39,6 +51,8 @@ public abstract class Repair<E> {
 		HashMap<E, T> min_row = null;
 		boolean invalid = false;
 		
+		clean_rate = 0;
+		
 		for(int i = 0; i < rows.size(); i++) {
 			if (min_row != null && min_row.get(this.mfd.getY_attribute()) != null) {
 				if(!compareArrayElements(rows.get(i-1), rows.get(i), this.mfd.getX_attributes())) {
@@ -50,7 +64,9 @@ public abstract class Repair<E> {
 					}
 					else {
 						core_patterns.add(new ArrayList<HashMap<E, T> >(best_pattern));
-					}					
+					}
+					
+					clean_rate += core_patterns.get(core_patterns.size()-1).size();
 					
 					current_pattern.clear();
 					best_pattern.clear();
@@ -64,7 +80,8 @@ public abstract class Repair<E> {
 					// The Y value does not satisfy the MFD
 					if(best_pattern.size() < current_pattern.size()) {
 						best_pattern = new ArrayList<HashMap<E, T> >(current_pattern);
-					}					
+					}
+
 					current_pattern.clear();
 					min_row = rows.get(i);
 				}
@@ -74,7 +91,6 @@ public abstract class Repair<E> {
 				else {
 					invalid = false;					
 				}
-				
 			}
 			else {
 				current_pattern.clear();
@@ -202,9 +218,8 @@ public abstract class Repair<E> {
 		boolean skip = false;
 		T result;
 		for(int i = 0; i < rows.size(); i++) {
-			// This doesn't handle the case where a core pattern does not exist for the given set of X values
-			
-			// Need to check if 
+
+			// Check if the tuple matches to the current CoreTuples or if the deviant tuple is unrepairable
 			for(int k = 0; k < 2 ; k++) {
 				if(!compareArrayElements(corePatterns.get(j).get(0), rows.get(i), this.mfd.getX_attributes())) {
 					
@@ -220,7 +235,12 @@ public abstract class Repair<E> {
 							// Bad tuples ignore them!
 							badTuples.add(rows.get(i));
 							rows.remove(i);
+							
+							// Check next element (since current was removed.
+							i--;
+							
 							j--;
+							
 							skip = true;
 							break;
 						}
@@ -265,6 +285,7 @@ public abstract class Repair<E> {
 						// Repair the left hand side.
 						setArray(rows.get(i), closest.getRow(), this.mfd.getX_attributes());
 					}
+					repair_count++;
 				}
 			}
 			else {
