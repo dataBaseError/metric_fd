@@ -1,5 +1,7 @@
-/*Added serial and change text of times to bigints*/
-/*id serial,*/
+/* Drop the table if it is already there */
+drop table if exists clean_flight;
+
+/* Create the clean flight table */
 CREATE TABLE "clean_flight"
 (
     id serial,
