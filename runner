@@ -4,10 +4,14 @@
 
 DATABASE=movies
 DELTA=10
-TIMES=50
+TIMES=1
+LOCATION=doc/${DATABASE}.sql
 
 for ((i=1;i<=${TIMES};i++))
 do
+    # Need to also clear the db, reset the schema, and the load the values back into it.
+    sudo -u postgres psql ${DATABASE} < ${LOCATION}
+
     # Use of redirect stderr and stdout to the tee
-    { time java -classpath "lib/*:bin/" metric_fd.Tester ${DATABASE} ${DELTA}; } 2>&1 | tee -a ${DATABASE}_${DELTA}_performance.log
+    { time java -classpath "lib/*:bin/" metric_fd.Tester ${DATABASE} ${DELTA}; } 2>&1 | ruby time_fixer.rb | tee -a ${DATABASE}_${DELTA}_performance.log
 done
