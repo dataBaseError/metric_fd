@@ -72,7 +72,7 @@ public class DBInterface {
 			String group_list = linearize(group_by);
 			
 			String limit_string = "";
-			if(limit <= 0) {
+			if(limit > 0) {
 				limit_string = " LIMIT " + limit;
 			}
 		

@@ -12,4 +12,4 @@ CREATE TABLE "movie"
 );
 
 /* Copy the values into the table */
-COPY "movie"(website, name, name_2, duration) from 'doc/MovieRuntime.txt';
+\copy "movie"(website, name, name_2, duration) from '/path/to/project/doc/MovieRuntime.txt';

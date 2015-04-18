@@ -53,14 +53,13 @@ Implementation to repair Metric Functional Dependencies
 
         sudo -u postgres createdb movies
 
-3. Add the schema the schema into the database.
+3. Update the path for the full project's path in the `doc/movies.sql` file. The line should looke like the following:
 
-        sudo -u postgres psql movies < doc/database.sql
+        \copy "movie"(website, name, name_2, duration) from '/path/to/project/doc/MoviesRuntime.txt';
 
-4. Load the dataset into the database
+4. Add the schema the schema into the database.
 
-        sudo -u postgres psql movies
-        COPY "movie"(website, name, name_2, duration) from 'doc/csv_database.txt';
+        sudo -u postgres psql movies < doc/movies.sql
 
 ## Flight Data Setup
 
