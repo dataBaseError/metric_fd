@@ -1,14 +1,22 @@
 #!/bin/bash
 
 # java -classpath "lib/*:bin/" metric_fd.Tester
+LOG_DIR=log/
+LOG_PERFORMANCE=${LOG_DIR}/performance/
+LOG_RAW=${LOG_DIR}/raw/
+
+
+mkdir -p ${LOG_PERFORMANCE}
+mkdir -p ${LOG_RAW}
 
 DATABASE=clean_flight
 DELTA=100000
 TIMES=1
 TUPLE_NUMBER=16000
 LOCATION=doc/${DATABASE}.sql
-LOG_LOCATION=log/$(date +"%m%d%Y_%H%M")
-RUNNER_LOG=${LOG_LOCATION}_runner_${DATABASE}_${DELTA}_${TUPLE_NUMBER}
+CUR_DATE=$(date +"%m%d%Y_%H%M")
+
+RUNNER_LOG=${LOG_RAW}${CUR_DATE}_runner_${DATABASE}_${DELTA}_${TUPLE_NUMBER}
 
 for ((i=1;i<=${TIMES};i++))
 do
@@ -17,9 +25,9 @@ do
 
     # Handle the special case for inserting clean flight.
     if [ "$DATABASE" == "clean_flight" ]; then
-        ruby inserter.rb doc/clean_flight/2011-12-01-data.txt > ${LOG_LOCATION}_inserter
+        ruby inserter.rb doc/clean_flight/2011-12-01-data.txt > ${LOG_RAW}${CUR_DATE}_inserter
     fi
 
     # Use of redirect stderr and stdout to the tee
-    { time java -classpath "lib/*:bin/" metric_fd.Tester ${DATABASE} ${DELTA} ${TUPLE_NUMBER}; } 2>&1 | tee -a ${RUNNER_LOG} | ruby time_fixer.rb >> ${DATABASE}_${DELTA}_performance.log
+    { time java -classpath "lib/*:bin/" metric_fd.Tester ${DATABASE} ${DELTA} ${TUPLE_NUMBER}; } 2>&1 | tee -a ${RUNNER_LOG} | ruby time_fixer.rb >> ${LOG_PERFORMANCE}${CUR_DATE}_${DATABASE}_${DELTA}_performance.log
 done
