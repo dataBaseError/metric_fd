@@ -115,8 +115,87 @@ public class DBInterface {
 		return result;
 	}
 	
-	public void updateRows(String table, ArrayList<HashMap<String, Comparable > > values, String identifier, ArrayList<String > attributes) {
+	@SuppressWarnings("rawtypes")
+	public HashMap<String, HashMap<String, Comparable> > get_min_max(String table_name, ArrayList<String > attributes) {
 		Statement st;
+		// There should be only one return since we are doing max and min functions
+		HashMap<String, HashMap<String, Comparable> >  result = new HashMap<String, HashMap<String, Comparable> > ();
+		try {
+			st = conn.createStatement();
+			
+			String max_list = linearize_preceeding(attributes, "max", true);
+			String min_list = linearize_preceeding(attributes, "min", true);
+			String attributes_list = max_list + ", " + min_list;
+			//String group_list = linearize(group_by);
+		
+			ResultSet rs = st.executeQuery("SELECT " + attributes_list + " FROM " + table_name);
+			ResultSetMetaData rsmd = rs.getMetaData();
+			String type = null;
+			Comparable val = null;
+			while (rs.next())
+			{
+				//new HashMap<String, HashMap<String, Comparable > >()
+				for(int i = 0; i < attributes.size(); i++) {
+					type = rsmd.getColumnTypeName(i+1);
+					
+					// TODO catch other types of integer values.
+					if(type.equalsIgnoreCase("int4") || type.equalsIgnoreCase("int8")) {
+						if(rs.getString(i+1) == null) {
+							val = null;
+						} else {
+							val = (Comparable) rs.getInt(i+1);
+						}
+					}
+					else if (type.equalsIgnoreCase("serial")) {
+						val = (Comparable) rs.getLong(i+1);
+					}
+					// TODO catch other types of floating point values
+					else if(type.equalsIgnoreCase("double")) {
+						val = (Comparable) rs.getDouble(i+1);
+					}
+					else if(type.equalsIgnoreCase("char") || type.equalsIgnoreCase("varchar") || type.equalsIgnoreCase("text")) {
+						val = (Comparable) rs.getString(i+1);
+					}
+					
+					result.put(attributes.get(i), new HashMap<String, Comparable>());
+					result.get(attributes.get(i)).put(Repair.MAX, val);
+				}
+				
+				for(int i = 0; i < attributes.size(); i++) {
+					type = rsmd.getColumnTypeName(attributes.size() + i + 1);
+					
+					// TODO catch other types of integer values.
+					if(type.equalsIgnoreCase("int4") || type.equalsIgnoreCase("int8")) {
+						if(rs.getString(attributes.size()+i+1) == null) {
+							val = null;
+						} else {
+							val = (Comparable) rs.getInt(attributes.size() + i + 1);
+						}
+					}
+					else if (type.equalsIgnoreCase("serial")) {
+						val = (Comparable) rs.getLong(attributes.size()+i+1);
+					}
+					// TODO catch other types of floating point values
+					else if(type.equalsIgnoreCase("double")) {
+						val = (Comparable) rs.getDouble(attributes.size()+i+1);
+					}
+					else if(type.equalsIgnoreCase("char") || type.equalsIgnoreCase("varchar") || type.equalsIgnoreCase("text")) {
+						val = (Comparable) rs.getString(attributes.size()+i+1);
+					}
+					
+					result.get(attributes.get(i)).put(Repair.MIN, val);
+				}
+			}
+			rs.close();
+			st.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return result;
+	}
+	
+	public void updateRows(String table, ArrayList<HashMap<String, Comparable > > values, String identifier, ArrayList<String > attributes) {
+		//Statement st;
 		PreparedStatement ps = null;
 		int k = 0;
 		
@@ -199,6 +278,33 @@ public class DBInterface {
 		String attributes_list = "";
 		for(int i = 0; i < attributes.size(); i++) {
 			attributes_list += attributes.get(i);
+			if (i + 1 != attributes.size()) {
+				attributes_list += ", ";
+			}
+		}
+		return attributes_list;
+	}
+	
+	private String linearize_preceeding(ArrayList<String > attributes, String before, boolean name_as) {
+		
+		String attributes_list = "";
+		for(int i = 0; i < attributes.size(); i++) {
+			if(before != null) {
+				attributes_list += before + "(";
+			}
+			attributes_list += attributes.get(i);
+			if(before != null) {
+				attributes_list += ")";
+			}
+			attributes_list += " ";
+			
+			if(name_as) {
+				if(before!= null) {
+					attributes_list += "as " + before + "_";
+				}
+				attributes_list += attributes.get(i);
+			}
+			
 			if (i + 1 != attributes.size()) {
 				attributes_list += ", ";
 			}

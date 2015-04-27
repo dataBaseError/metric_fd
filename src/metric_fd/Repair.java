@@ -3,7 +3,7 @@ package metric_fd;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public abstract class Repair<E> {
+public abstract class Repair<E, H extends Comparable> {
 	
 	// TODO create a class that encapsulates the MFD
 	/*
@@ -19,14 +19,19 @@ public abstract class Repair<E> {
 	}
 	*/
 	
+	public final static String MIN = "min";
+	public final static String MAX = "max";
+	
 	private MetricFD<E> mfd;
 	private int clean_rate;
 	private int repair_count;
+	protected HashMap<E, HashMap<String, H > > boundaries;
 	
-	public Repair(MetricFD<E> mfd) {
+	public Repair(MetricFD<E> mfd, HashMap<E, HashMap<String, H > > boundaries) {
 		this.mfd = mfd;
 		this.clean_rate = 0;
 		this.repair_count = 0;
+		this.boundaries = boundaries;
 	}
 	
 	public int getCleanRate() {
@@ -80,7 +85,7 @@ public abstract class Repair<E> {
 					// This row should be marked for repair
 					invalid = true;
 				}
-				else if(!satisftyMFD(min_row.get(this.mfd.getY_attribute()), rows.get(i).get(this.mfd.getY_attribute()))) {
+				else if(!satisftyMFD(this.mfd.getY_attribute(), min_row.get(this.mfd.getY_attribute()), rows.get(i).get(this.mfd.getY_attribute()))) {
 					// The Y value does not satisfy the MFD
 					if(best_pattern.size() < current_pattern.size()) {
 						best_pattern = new ArrayList<HashMap<E, T> >(current_pattern);
@@ -271,10 +276,10 @@ public abstract class Repair<E> {
 					result = getTarget(corePatterns.get(j), rows.get(i), this.mfd.getY_attribute(), this.mfd.getDelta());
 					
 					// If the right side is null then we must repair it to the LHS it is apart of.
-					Integer cost = null;
+					Double cost = null;
 					if(rows.get(i).get(this.mfd.getY_attribute()) != null) {
 						// If we are using values that cannot be subtracted we can incur a larger cost and only use values from within the active domain.
-						cost = distance(rows.get(i).get(this.mfd.getY_attribute()), result);
+						cost = distance(this.mfd.getY_attribute(), rows.get(i).get(this.mfd.getY_attribute()), result);
 					}
 					
 					if(cost != null) {
@@ -329,7 +334,7 @@ public abstract class Repair<E> {
 		// Use binary search
 		
 		Candidate<E, T> best_cost = null;
-		Integer cost = 0;
+		double cost = 0;
 		for(int i = 0; i < corePatterns.size(); i++) {
 			if(index != i) {				
 				// Search the core patterns for a match between the Y attribute values
@@ -398,15 +403,16 @@ public abstract class Repair<E> {
 	 * @param attributes
 	 * @return
 	 */
-	private <T extends Comparable<T> > Integer arrayDistance(HashMap<E, T> left, HashMap<E, T> right, ArrayList<E> attributes) {
+	private <T extends Comparable<T> > double arrayDistance(HashMap<E, T> left, HashMap<E, T> right, ArrayList<E> attributes) {
 		
-		Integer cost = 0;
+		Double cost = 0.0;
 		for(int i = 0; i < attributes.size(); i++) {
 			// Get the distance of each attribute to the base.
-			cost += distance(left.get(attributes.get(i)), right.get(attributes.get(i)));
+			cost += distance(attributes.get(i), left.get(attributes.get(i)), right.get(attributes.get(i)));
 		}
-		
-		return cost;
+		// Since the distance is normalized we will divide the summation of normalized distances by the number of normalized distances added.
+		// This maintains the range of the values (between 0-1)
+		return cost/attributes.size();
 	}
 
 	/**
@@ -450,8 +456,8 @@ public abstract class Repair<E> {
 	 * @param right
 	 * @return
 	 */
-	private <T> boolean satisftyMFD(T left, T right) {
-		return distance(left, right) <= this.mfd.getDelta();
+	private <T> boolean satisftyMFD(E attribute, T left, T right) {
+		return distance(attribute, left, right) <= this.mfd.getDelta();
 	}
 	
 	/**
@@ -463,7 +469,7 @@ public abstract class Repair<E> {
 	 * @param right
 	 * @return
 	 */
-	public abstract <T> Integer distance(T left, T right);
+	public abstract <T> Double distance(E attribute, T left, T right);
 	
 	/*public static Integer subtract(Integer first, Integer second) {
 		return first - second;

@@ -63,6 +63,8 @@ public class Tester {
 				attributes.set(attributes.size()-1, mfds.get(i).getY_attribute());
 				ArrayList<HashMap<String, Comparable > > rows = db.get_sorted(table_name, attributes, group_by, limit);
 				System.out.println("Number of Tuples: " + rows.size());
+				
+				HashMap<String, HashMap<String, Comparable> > min_max = db.get_min_max(table_name, group_by);
 				/*
 				for(int j = 0; j < attributes.size(); j++) {
 					System.out.print(attributes.get(j) + ", ");
@@ -76,21 +78,8 @@ public class Tester {
 					System.out.println();
 				}*/
 				
-				Repair<String> re = new Repair<String>(mfds.get(i)) {
-	
-					@Override
-					public Integer distance(Object left, Object right) {
-	
-						if(left instanceof Integer && right instanceof Integer) {
-							return Math.abs((Integer) left - (Integer) right);
-						}
-						else if(left instanceof String && right instanceof String) {
-							return Levenshtein.distance((String) left, (String) right);
-						}
-						return null;
-					}
-					
-				};
+				// TODO move this definition into an actual class (since it is quite general).
+				Repair<String, Comparable> re = new BasicRepair<String, Comparable>(mfds.get(i), min_max);
 				
 				ArrayList<ArrayList<HashMap<String, Comparable > > > corePatterns = re.createCorePatterns(rows);
 				
@@ -159,6 +148,15 @@ public class Tester {
 			ArrayList<HashMap<String, Comparable > > rows = db.get_sorted(table_name, attributes, group_by, limit);
 			
 			System.out.println("Number of Tuples: " + rows.size());
+			
+			HashMap<String, HashMap<String, Comparable> > min_max = db.get_min_max(table_name, group_by);
+			
+			for(int j = 0; j < group_by.size(); j++) {
+				System.out.print("Max = " + min_max.get(group_by.get(j)).get("max")+ ", ");
+				System.out.print("Min = " + min_max.get(group_by.get(j)).get("min")+ ", ");
+				System.out.println();
+			}
+			
 			/*
 			for(int j = 0; j < attributes.size(); j++) {
 				System.out.print(attributes.get(j) + ", ");
@@ -173,21 +171,7 @@ public class Tester {
 			}*/
 			MetricFD<String> mfd = new MetricFD<String>(x_attributes, y_attribute, delta);
 			
-			Repair<String> re = new Repair<String>(mfd) {
-
-				@Override
-				public Integer distance(Object left, Object right) {
-
-					if(left instanceof Integer && right instanceof Integer) {
-						return Math.abs((Integer) left - (Integer) right);
-					}
-					else if(left instanceof String && right instanceof String) {
-						return Levenshtein.distance((String) left, (String) right);
-					}
-					return null;
-				}
-				
-			};
+			Repair<String, Comparable> re = new BasicRepair<String, Comparable>(mfd, min_max);
 			
 			ArrayList<ArrayList<HashMap<String, Comparable > > > corePatterns = re.createCorePatterns(rows);
 			

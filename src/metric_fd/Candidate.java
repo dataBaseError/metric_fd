@@ -5,11 +5,11 @@ import java.util.HashMap;
 public class Candidate<E, T extends Comparable<T> > {
 	
 	private HashMap<E, T> row;
-	private Integer distance;
+	private Double distance;
 	
-	public Candidate(HashMap<E, T> row, Integer distance) {
+	public Candidate(HashMap<E, T> row, Double cost) {
 		this.row = row;
-		this.distance = distance;
+		this.distance = cost;
 	}
 
 	/**
@@ -24,7 +24,7 @@ public class Candidate<E, T extends Comparable<T> > {
 	 * Get the distance
 	 * @return the distance
 	 */
-	public Integer getDistance() {
+	public Double getDistance() {
 		return distance;
 	}
 }
