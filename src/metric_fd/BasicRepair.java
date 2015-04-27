@@ -9,17 +9,17 @@ public class BasicRepair <E, H extends Comparable > extends Repair<E, H> {
 	}
 
 	@Override
-	public <T> Double distance(E attribute, T left, T right) {
+	public <T> Integer distance(T left, T right) {
 
 		if(left instanceof Integer && right instanceof Integer) {
 
 			// Normalized distance is the distance divided by max distance 
-			return Math.abs((Integer) left - (Integer) right) / ((double)((Integer) this.boundaries.get(attribute).get(MAX) - (Integer) this.boundaries.get(attribute).get(MIN)));
+			return Math.abs((Integer) left - (Integer) right);
 		}
 		else if(left instanceof String && right instanceof String) {
 			// Normalized distance by dividing the distance by the max distance (range)
 			// TODO try one of the string distance algorithms from the paper.
-			return Levenshtein.distance((String) left, (String) right) / ((double) Levenshtein.distance((String) this.boundaries.get(attribute).get(MAX), (String) this.boundaries.get(attribute).get(MIN)));
+			return Levenshtein.distance((String) left, (String) right);
 		}
 		return null;
 	}

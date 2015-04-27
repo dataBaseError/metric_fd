@@ -279,7 +279,7 @@ public abstract class Repair<E, H extends Comparable> {
 					Double cost = null;
 					if(rows.get(i).get(this.mfd.getY_attribute()) != null) {
 						// If we are using values that cannot be subtracted we can incur a larger cost and only use values from within the active domain.
-						cost = distance(this.mfd.getY_attribute(), rows.get(i).get(this.mfd.getY_attribute()), result);
+						cost = norm_distance(this.mfd.getY_attribute(), rows.get(i).get(this.mfd.getY_attribute()), result);
 					}
 					
 					if(cost != null) {
@@ -408,7 +408,7 @@ public abstract class Repair<E, H extends Comparable> {
 		Double cost = 0.0;
 		for(int i = 0; i < attributes.size(); i++) {
 			// Get the distance of each attribute to the base.
-			cost += distance(attributes.get(i), left.get(attributes.get(i)), right.get(attributes.get(i)));
+			cost += norm_distance(attributes.get(i), left.get(attributes.get(i)), right.get(attributes.get(i)));
 		}
 		// Since the distance is normalized we will divide the summation of normalized distances by the number of normalized distances added.
 		// This maintains the range of the values (between 0-1)
@@ -457,7 +457,7 @@ public abstract class Repair<E, H extends Comparable> {
 	 * @return
 	 */
 	private <T> boolean satisftyMFD(E attribute, T left, T right) {
-		return distance(attribute, left, right) <= this.mfd.getDelta();
+		return distance(left, right) <= this.mfd.getDelta();
 	}
 	
 	/**
@@ -469,7 +469,11 @@ public abstract class Repair<E, H extends Comparable> {
 	 * @param right
 	 * @return
 	 */
-	public abstract <T> Double distance(E attribute, T left, T right);
+	public abstract <T> Integer distance(T left, T right);
+	
+	public <T> Double norm_distance(E attribute, T left, T right) {
+		return distance(left, right) / (double) distance(this.boundaries.get(attribute).get(MAX), this.boundaries.get(attribute).get(MIN));
+	}
 	
 	/*public static Integer subtract(Integer first, Integer second) {
 		return first - second;
