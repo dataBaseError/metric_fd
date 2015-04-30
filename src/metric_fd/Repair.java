@@ -2,6 +2,7 @@ package metric_fd;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public abstract class Repair<E, H extends Comparable> {
 	
@@ -516,5 +517,39 @@ public abstract class Repair<E, H extends Comparable> {
 	private static <T> T min(ArrayList<T> list) {
 		// Since the list is sorted that we can just get the very first element
 		return list.get(0);
+	}
+	
+	public static int[] orderRepairs(ArrayList<Repair<String, Comparable> > repairs, boolean random) {
+		
+		int[] list = new int[repairs.size()];
+		
+		if(random) {
+			// Not really random but for the sake of testing this is more ideal since random does not taking into account the repair criteria this is a possible result.
+			// While random may find a more ideal result using a normal distributed random order is just as likely to return this result.
+			for(int i = 0; i < repairs.size(); i++) {
+				list[i] = i;
+			}
+		}
+		else {
+			HashMap<Double, ArrayList<Integer > > orderer = new HashMap<Double, ArrayList<Integer > >();
+			Double rate = 0.0;
+			
+			// Handles the case where two MFDs have the same clean rate
+			for(int i = 0; i < repairs.size(); i ++) {
+				rate = repairs.get(i).getCleanRate();
+				if(!orderer.containsKey(rate)) {
+					orderer.put(rate, new ArrayList<Integer>());
+				}
+				orderer.get(rate).add(i);
+			}
+			List<Double> order = Merge.mergeSort(new ArrayList<Double>(orderer.keySet()));
+			for(int i = 0; i < order.size(); i++) {
+				for(int j = 0; j < orderer.get(order.get(i)).size(); j++) {
+					list[i] = orderer.get(order.get(i)).get(j);
+				}
+			}
+		}
+		
+		return list;
 	}
 }

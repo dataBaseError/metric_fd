@@ -13,6 +13,7 @@ class DBInterface
 
     def insert(table, attributes)
 
+        prev_null = 0
         attribute_list = Array.new
         attributes.each_with_index do |val, i|
 
@@ -26,9 +27,23 @@ class DBInterface
                     rescue ArgumentError
                         val = "null"
                     end
+
+                    if val == "null"
+                        if i == 2 || i == 5
+                            prev_null = 2
+                        elsif (i == 3 || i == 6) && prev_null <= 0
+                            val = attribute_list[-1]
+                        end
+                    elsif (i == 3 || i == 6) && prev_null > 0
+                        attribute_list[-1] = val
+                    end
+
                 else
                     val = "'#{val}'"
                 end
+            end
+            if prev_null > 0
+                prev_null -= 1
             end
             attribute_list << val
         end
