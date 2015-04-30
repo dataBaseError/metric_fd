@@ -10,12 +10,14 @@ public class Tester {
 		
 		String username = "postgres";
 		String password = "password";
+		
+		// TODO determine a threshold for each of them that allows for 5%-15% error in the db.
 		if(args != null && args.length >= 3) {
 			if(args[0].equalsIgnoreCase("movies")) {
-				testMovies(username, password, Integer.parseInt(args[1]), Integer.parseInt(args[2]));
+				testMovies(username, password, Long.parseLong(args[1]), Integer.parseInt(args[2]));
 			}
 			else {
-				testFlight(username, password, Integer.parseInt(args[1]), Integer.parseInt(args[2]));
+				testFlight(username, password, Long.parseLong(args[1]), Integer.parseInt(args[2]));
 			}
 		} 
 		else {
@@ -24,7 +26,7 @@ public class Tester {
 		
 	}
 	
-	private static void testFlight(String username, String password, Integer delta, int limit) {
+	private static void testFlight(String username, String password, Long delta, int limit) {
 		String db_name = "clean_flight";
 		DBInterface db = new DBInterface(db_name, username, password);
 		
@@ -118,7 +120,7 @@ public class Tester {
 		}
 	}
 
-	private static void testMovies(String username, String password, Integer delta, int limit) {
+	private static void testMovies(String username, String password, Long delta, int limit) {
 		String db_name = "movies";
 		DBInterface db = new DBInterface(db_name, username, password);
 		

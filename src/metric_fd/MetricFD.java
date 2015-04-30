@@ -6,9 +6,9 @@ public class MetricFD<E> {
 	
 	private ArrayList<E> x_attributes;
 	private E y_attribute;
-	private Integer delta;
+	private Long delta;
 	
-	public MetricFD(ArrayList<E> x_attributes, E y_attribute, Integer delta) {
+	public MetricFD(ArrayList<E> x_attributes, E y_attribute, Long delta) {
 		this.x_attributes = x_attributes;
 		this.y_attribute = y_attribute;
 		this.delta = delta;
@@ -50,7 +50,7 @@ public class MetricFD<E> {
 	 * Get the delta constant
 	 * @return the delta
 	 */
-	public Integer getDelta() {
+	public Long getDelta() {
 		return delta;
 	}
 }

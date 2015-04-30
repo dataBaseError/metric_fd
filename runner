@@ -10,13 +10,16 @@ mkdir -p ${LOG_PERFORMANCE}
 mkdir -p ${LOG_RAW}
 
 DATABASE=clean_flight
-DELTA=100000
-TIMES=1
-TUPLE_NUMBER=16000
+DELTA=172800
+TIMES=6
+# 172800 => 48 hours
+TUPLE_NUMBER=50000
 LOCATION=doc/${DATABASE}.sql
+# If this is set the logs will be marked with a test name.
+#TEST=_Test
 CUR_DATE=$(date +"%m%d%Y_%H%M")
 
-RUNNER_LOG=${LOG_RAW}${CUR_DATE}_runner_${DATABASE}_${DELTA}_${TUPLE_NUMBER}
+RUNNER_LOG=${LOG_RAW}${CUR_DATE}_runner_${DATABASE}_${DELTA}_${TUPLE_NUMBER}${TEST}
 
 for ((i=1;i<=${TIMES};i++))
 do
@@ -29,5 +32,6 @@ do
     fi
 
     # Use of redirect stderr and stdout to the tee
-    { time java -classpath "lib/*:bin/" metric_fd.Tester ${DATABASE} ${DELTA} ${TUPLE_NUMBER}; } 2>&1 | tee -a ${RUNNER_LOG} | ruby time_fixer.rb >> ${LOG_PERFORMANCE}${CUR_DATE}_${DATABASE}_${DELTA}_performance.log
+    { time java -classpath "lib/*:bin/" metric_fd.Tester ${DATABASE} ${DELTA} ${TUPLE_NUMBER}; } 2>&1 | tee -a ${RUNNER_LOG} | ruby time_fixer.rb >> ${LOG_PERFORMANCE}${CUR_DATE}_${DATABASE}_${DELTA}_${TUPLE_NUMBER}${TEST}_performance.log
+
 done

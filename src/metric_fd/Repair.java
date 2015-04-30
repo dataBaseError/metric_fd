@@ -141,7 +141,7 @@ public abstract class Repair<E, H extends Comparable> {
 	 * @param delta
 	 * @return
 	 */
-	public static <E, T extends Comparable<T> > T getTarget(ArrayList<HashMap<E, T>> arrayList, HashMap<E, T> hashMap, E y_attribute2, Integer delta) {
+	public static <E, T extends Comparable<T> > T getTarget(ArrayList<HashMap<E, T>> arrayList, HashMap<E, T> hashMap, E y_attribute2, Long delta) {
 		
 		ArrayList<T> g_attributes = new ArrayList<T>(arrayList.size());
 		
