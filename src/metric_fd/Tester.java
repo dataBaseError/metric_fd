@@ -2,6 +2,7 @@ package metric_fd;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class Tester {
 	
@@ -58,6 +59,8 @@ public class Tester {
 		
 		db.connect();
 		
+		ArrayList<Repair<String, Comparable> > repairs = new ArrayList<Repair<String, Comparable>>();
+		
 		if(db.isConnected()) {
 			
 			for(int i = 0; i < mfds.size(); i++) {
@@ -67,56 +70,50 @@ public class Tester {
 				System.out.println("Number of Tuples: " + rows.size());
 				
 				HashMap<String, HashMap<String, Comparable> > min_max = db.get_min_max(table_name, group_by);
-				/*
-				for(int j = 0; j < attributes.size(); j++) {
-					System.out.print(attributes.get(j) + ", ");
+
+				repairs.add(new BasicRepair<String, Comparable>(mfds.get(i), min_max));
+				
+				ArrayList<ArrayList<HashMap<String, Comparable > > > corePatterns = repairs.get(i).createCorePatterns(rows);
+			}
+			
+			// TODO order based on ordering criteria.
+			int[] ordering = orderRepairs(repairs, false);
+			
+			for(int i = 0; i < mfds.size(); i++) {
+				
+				group_by.set(group_by.size()-1, mfds.get(ordering[i]).getY_attribute());
+				attributes.set(attributes.size()-1, mfds.get(ordering[i]).getY_attribute());
+				ArrayList<HashMap<String, Comparable > > rows = db.get_sorted(table_name, attributes, group_by, limit);
+				System.out.println("Number of Tuples: " + rows.size());
+				
+				// The first repair's min and max will be correct (the rest cannot be guaranteed).
+				if(i > 0) {
+					HashMap<String, HashMap<String, Comparable> > min_max = db.get_min_max(table_name, group_by);
+					
+					repairs.get(ordering[i]).setMaxMin(min_max);
 				}
-				System.out.println();
-				
-				for(int i = 0; i < rows.size(); i++) {
-					for(int j = 0; j < attributes.size(); j++) {
-						System.out.print(rows.get(i).get(attributes.get(j))+ ", ");
-					}
-					System.out.println();
-				}*/
-				
-				// TODO move this definition into an actual class (since it is quite general).
-				Repair<String, Comparable> re = new BasicRepair<String, Comparable>(mfds.get(i), min_max);
-				
-				ArrayList<ArrayList<HashMap<String, Comparable > > > corePatterns = re.createCorePatterns(rows);
+					
+				ArrayList<ArrayList<HashMap<String, Comparable > > > corePatterns = repairs.get(ordering[i]).createCorePatterns(rows);
 				
 				System.out.println("MFD " + i);
-				System.out.println("Clean rate = " + (re.getCleanRate() / (double) rows.size()) * 100);
-				System.out.println("Error rate = " + (1.0 - (re.getCleanRate() / (double) rows.size())) * 100);
-				
-				/*
-				for(int k = 0; k < corePatterns.size(); k++) {
-					System.out.print("Group " + k);
-					System.out.println(" has " + corePatterns.get(k).size() + " elements in this pattern e.g.");
-					for(int j = 0; j < attributes.size(); j++) {
-						System.out.print(corePatterns.get(k).get(0).get(attributes.get(j)));
-						if(j < attributes.size() -1) {
-							System.out.print(", ");
-						}
-					}
-					System.out.println();
-				}*/
+				System.out.println("Clean rate = " + (repairs.get(ordering[i]).getCleanRate()) * 100);
+				System.out.println("Error rate = " + (1.0 - (repairs.get(ordering[i]).getCleanRate())) * 100);
 				
 				ArrayList<HashMap<String, Comparable > > badResults = new ArrayList<HashMap<String, Comparable > >();
-				ArrayList<HashMap<String, Comparable > > result = re.costAnalysis(rows, corePatterns, badResults);
+				ArrayList<HashMap<String, Comparable > > result = repairs.get(ordering[i]).costAnalysis(rows, corePatterns, badResults);
 			
-				re.resetCleanRatio();
-				corePatterns = re.createCorePatterns(result);
+				repairs.get(ordering[i]).resetCleanRatio();
+				corePatterns = repairs.get(ordering[i]).createCorePatterns(result);
 				
-				System.out.println("Clean rate = " + (re.getCleanRate() / (double) rows.size()) * 100);
-				System.out.println("Error rate = " + (1.0 - (re.getCleanRate() / (double) rows.size())) * 100);
+				System.out.println("Clean rate = " + (repairs.get(ordering[i]).getCleanRate()) * 100);
+				System.out.println("Error rate = " + (1.0 - (repairs.get(ordering[i]).getCleanRate())) * 100);
 				
-				System.out.println("Repair Count = " + re.getRepairCount());
+				System.out.println("Repair Count = " + repairs.get(ordering[i]).getRepairCount());
 				System.out.println("Unrepairable Count = " + badResults.size());
 				System.out.println("Finished " + i);
 				
 				
-				if(re.getRepairCount() > 0) {
+				if(repairs.get(ordering[i]).getRepairCount() > 0) {
 					db.updateRows(table_name, result, attributes.get(0), group_by);
 				}
 			}
@@ -177,8 +174,8 @@ public class Tester {
 			
 			ArrayList<ArrayList<HashMap<String, Comparable > > > corePatterns = re.createCorePatterns(rows);
 			
-			System.out.println("Clean rate = " + (re.getCleanRate() / (double) rows.size()) * 100);
-			System.out.println("Error rate = " + (1.0 - (re.getCleanRate() / (double) rows.size())) * 100);
+			System.out.println("Clean rate = " + (re.getCleanRate()) * 100);
+			System.out.println("Error rate = " + (1.0 - (re.getCleanRate())) * 100);
 			
 			/*
 			for(int k = 0; k < corePatterns.size(); k++) {
@@ -199,8 +196,8 @@ public class Tester {
 			re.resetCleanRatio();
 			corePatterns = re.createCorePatterns(result);
 			
-			System.out.println("Clean rate = " + (re.getCleanRate() / (double) rows.size()) * 100);
-			System.out.println("Error rate = " + (1.0 - (re.getCleanRate() / (double) rows.size())) * 100);
+			System.out.println("Clean rate = " + (re.getCleanRate()) * 100);
+			System.out.println("Error rate = " + (1.0 - (re.getCleanRate())) * 100);
 			
 			System.out.println("Repair Count = " + re.getRepairCount());
 			System.out.println("Unrepairable Count = " + badResults.size());
@@ -210,6 +207,40 @@ public class Tester {
 				db.updateRows(table_name, result, attributes.get(0), group_by);
 			}
 		}
+	}
+	
+	private static int[] orderRepairs(ArrayList<Repair<String, Comparable> > repairs, boolean random) {
+		
+		int[] list = new int[repairs.size()];
+		
+		if(random) {
+			// Not really random but for the sake of testing this is more ideal since random does not taking into account the repair criteria this is a possible result.
+			// While random may find a more ideal result using a normal distributed random order is just as likely to return this result.
+			for(int i = 0; i < repairs.size(); i++) {
+				list[i] = i;
+			}
+		}
+		else {
+			HashMap<Double, ArrayList<Integer > > orderer = new HashMap<Double, ArrayList<Integer > >();
+			Double rate = 0.0;
+			
+			// Handles the case where two MFDs have the same clean rate
+			for(int i = 0; i < repairs.size(); i ++) {
+				rate = repairs.get(i).getCleanRate();
+				if(!orderer.containsKey(rate)) {
+					orderer.put(rate, new ArrayList<Integer>());
+				}
+				orderer.get(rate).add(i);
+			}
+			List<Double> order = Merge.mergeSort(new ArrayList<Double>(orderer.keySet()));
+			for(int i = 0; i < order.size(); i++) {
+				for(int j = 0; j < orderer.get(order.get(i)).size(); j++) {
+					list[i] = orderer.get(order.get(i)).get(j);
+				}
+			}
+		}
+		
+		return list;
 	}
 
 }

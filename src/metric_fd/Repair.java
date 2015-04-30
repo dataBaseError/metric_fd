@@ -25,16 +25,18 @@ public abstract class Repair<E, H extends Comparable> {
 	private MetricFD<E> mfd;
 	private int clean_rate;
 	private int repair_count;
+	private int num_rows;
 	protected HashMap<E, HashMap<String, H > > boundaries;
 	
 	public Repair(MetricFD<E> mfd, HashMap<E, HashMap<String, H > > boundaries) {
 		this.mfd = mfd;
 		this.clean_rate = 0;
 		this.repair_count = 0;
+		this.num_rows = 0;
 		this.boundaries = boundaries;
 	}
 	
-	public int getCleanRate() {
+	public int getCleanCount() {
 		return clean_rate;
 	}
 	
@@ -46,6 +48,18 @@ public abstract class Repair<E, H extends Comparable> {
 		clean_rate = 0;
 	}
 
+	public void setMaxMin(HashMap<E, HashMap<String, H > > boundaries) {
+		this.boundaries = boundaries;
+	}
+	
+	public int getRows() {
+		return this.num_rows;
+	}
+	
+	public double getCleanRate() {
+		return this.clean_rate / ((double) this.num_rows);
+	}
+	
 	/**
 	 * TODO complete doc
 	 * Basically finds the largest groups of tuples (rows) that satisfies the MFD)
@@ -61,6 +75,7 @@ public abstract class Repair<E, H extends Comparable> {
 		boolean invalid = false;
 		
 		clean_rate = 0;
+		num_rows = rows.size();
 		
 		for(int i = 0; i < rows.size(); i++) {
 			if (min_row != null && min_row.get(this.mfd.getY_attribute()) != null) {
