@@ -14,6 +14,7 @@ class DBInterface
     def insert(table, attributes)
 
         prev_null = 0
+        scrap = false
         attribute_list = Array.new
         attributes.each_with_index do |val, i|
 
@@ -33,6 +34,10 @@ class DBInterface
                             prev_null = 2
                         elsif (i == 3 || i == 6) && prev_null <= 0
                             val = attribute_list[-1]
+                        elsif i == 3 || i == 6
+                            # Previous was null and this one is also null
+                            # scrap
+                            scrap = true
                         end
                     elsif (i == 3 || i == 6) && prev_null > 0
                         attribute_list[-1] = val
@@ -45,7 +50,10 @@ class DBInterface
             if prev_null > 0
                 prev_null -= 1
             end
-            attribute_list << val
+            if !scrap
+                attribute_list << val
+            end
+            scrap = false
         end
 
         puts "attribute_list = #{attribute_list}"
